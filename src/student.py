@@ -3,14 +3,15 @@ import numpy as np
 import scipy
 import librosa
 import librosa.display
-#import winsound
 from public import *
 import public
 import emotion
 import csv
+import numpy as np
 import sounddevice as sd
-import scipy.io.wavfile as wav
+from scipy.io.wavfile import read
 import soundfile as sf
+import wave
 
 class StudentAnalyze(object):
 
@@ -21,7 +22,7 @@ class StudentAnalyze(object):
 	"""docstring for studentAnalyze"""
 	def __init__(self, name):
 		self.name = name
-		self.filename = "../files/"+name+".wav"
+		self.filename = "../files/data/output.wav"
 		self.intervention = []
 		self.interventionTime = []
 		self.interventionTotalTime = 0
@@ -37,7 +38,7 @@ class StudentAnalyze(object):
 
 
 	def Analyze(self):
-		y, sr = librosa.load(self.filename)
+		#y, sr = librosa.load(self.filename)
 		#oenv = librosa.onset.onset_strength(y=y, sr=sr)
 		# Detect events without backtracking
 		#onset_raw = librosa.onset.onset_detect(onset_envelope=oenv)
@@ -47,16 +48,64 @@ class StudentAnalyze(object):
 		#rmse = librosa.feature.rmse(S=np.abs(librosa.stft(y=y)))
 		#onset_bt_rmse = librosa.onset.onset_backtrack(onset_raw, rmse[0])
 		isSpeak = False
-		# with open('../files/data/output.csv') as csvfile:
-		# 	reader = csv.DictReader(csvfile, delimiter=";")
-		# 	for row in reader:
-		# 		if int(row['speak']):
-		# 			isSpeak = True
-		# 			print row['direction'], row['seconds']
-		# 		else:
+		activity = []
+		activity.append([])
+		activity.append([])
+		activity.append([])
+		activity.append([])
+
+		with open('../files/data/output.csv') as csvfile:
+			reader = csv.DictReader(csvfile, delimiter=";")
+			for row in reader:
+				if int(row['speak']):
+					isSpeak = True
+					activity[int(row['direction'])].append(float(row['seconds'])) 
+				#else:
+
 		#self.Intervention(onset_bt)
-		self.Record()
-		#self.plot(y, sr) 
+		print self.filename
+		f = wave.open(self.filename, 'rb')
+		params = f.getparams()
+		nchannels, sampwidth, framerate, nframes = params[:4]
+		print "channels", nchannels
+		str_data = f.readframes(nframes)
+		f.close()
+
+		wave_data = np.fromstring(str_data, dtype=np.short)
+		wave_data.shape = -1, 4
+		wave_data = wave_data.T
+		time = np.arange(0, nframes) * (1.0 / framerate)
+		figure = plt.gcf() # get current figure
+		figure.set_size_inches(8*20, 6)
+		duration = nframes/float(framerate)
+		xticks = np.arange(0, duration, 2)
+		plt.subplot(211).set_xticks(xticks)
+		plt.plot(time, wave_data[0])
+		plt.xlabel("time (seconds)")
+		plt.vlines(activity[0], 0, wave_data[0].max(), label='Usuario 1', color='red')
+		plt.vlines(activity[1], 0, wave_data[0].max(), label='Usuario 2', color='blue')
+		plt.vlines(activity[2], 0, wave_data[0].max(), label='Usuario 3', color='green')
+		plt.vlines(activity[3], 0, wave_data[0].max(), label='Usuario 4', color='orange')
+		plt.legend(frameon=True, framealpha=0.6)
+		# plt.subplot(412).set_xticks(xticks)
+		# plt.plot(time, wave_data[1], c="g")
+		# plt.xlabel("time (seconds)")
+		# plt.title('channel 2', loc='left')
+
+		# plt.subplot(413).set_xticks(xticks)
+		# plt.plot(time, wave_data[2], c="g")
+		# plt.xlabel("time (seconds)")
+		# plt.title('channel 3', loc='left')
+
+		# plt.subplot(414).set_xticks(xticks)
+		# plt.plot(time, wave_data[3], c="g")
+		# plt.xlabel("time (seconds)")
+		# plt.title('channel 4', loc='left')
+
+		plt.show()
+		#plt.show()
+		plt.close(figure)
+		#self.plot(audio) 
 		#intervention = librosa.time_to_frames(self.intervention)[0]
 		#self.InterventionTotalTime()
 		#self.InterventionTotalSpeakTime()
@@ -169,9 +218,9 @@ class StudentAnalyze(object):
 		plt.savefig(filepath+"Emotion")
 		plt.show()
 
-	def plot(self, y, sr):
+	def plot(self, y):
 		# Detect onset force
-		oenv = librosa.onset.onset_strength(y=y, sr=sr)
+		#oenv = librosa.onset.onset_strength(y=y, sr=sr)
 		# Detect events without backtracking
 		#onset_raw = librosa.onset.onset_detect(onset_envelope=oenv, backtrack=False)
 		# Backtrack the events using the onset envelope
@@ -187,8 +236,9 @@ class StudentAnalyze(object):
 		# onset_bt_rmse_tiempo = librosa.frames_to_time(onset_bt_rmse, sr=sr)
 		# print("actividad en el tiempo: ", onset_bt_rmse)
 		plt.figure()
-		plt.subplot(2,1,1)
-		plt.plot(oenv, label='Onset strength')
+
+		#plt.subplot(2,1,1)
+		plt.plot(y, label='Onset strength')
 		#plt.vlines(onset_raw, 0, oenv.max(), label='Raw onsets')
 		#plt.vlines(onset_bt, 0, oenv.max(), label='Backtracked', color='r')
 		plt.legend(frameon=True, framealpha=0.75)
@@ -203,7 +253,6 @@ class StudentAnalyze(object):
 		plt.show()	
 
 	def Plot(self, values, valueLabel="", xlabel="", ylabel="", vlines=[], hlines=[], vlinesLabels=[], hlinesLabels=[], color=[]):
-		print("hola")
 		plt.figure(figsize=(4, 4))
 		plt.plot(values, label=valueLabel)
 		if(len(vlines)==len(vlinesLabels)):
@@ -228,13 +277,13 @@ if __name__ == '__main__':
 	#student2.Analyze()
 	studentList.append(student)
 	#studentList.append(student2)
-	print("variables individuales")
-	print("nombre estudiante: ", student.name)
-	#print("intervenciones: ", student.intervention)
-	print("tiempo intervenciones: ", student.interventionTime)
-	print("tiempo total intervenciones: ", student.interventionTotalTime)
-	print("tiempo de habla por intervenciones: ", student.interventionSpeakTime)
-	print("tiempo de total de habla: ", student.interventionTotalSpeakTime)
-	print("cantidad de intervenciones: ", student.interventionCount)
-	print("enegia promedio voz por intervenciones: ", student.energyInterventionAVG)
-	print("energia promedio total: ", student.energyInterventionTotalAVG)
+	# print("variables individuales")
+	# print("nombre estudiante: ", student.name)
+	# #print("intervenciones: ", student.intervention)
+	# print("tiempo intervenciones: ", student.interventionTime)
+	# print("tiempo total intervenciones: ", student.interventionTotalTime)
+	# print("tiempo de habla por intervenciones: ", student.interventionSpeakTime)
+	# print("tiempo de total de habla: ", student.interventionTotalSpeakTime)
+	# print("cantidad de intervenciones: ", student.interventionCount)
+	# print("enegia promedio voz por intervenciones: ", student.energyInterventionAVG)
+	# print("energia promedio total: ", student.energyInterventionTotalAVG)

@@ -9,6 +9,7 @@ from voice_engine.source import Source
 from voice_engine.channel_picker import ChannelPicker
 from mic_array.pixels import pixels
 import pyaudio
+import mic_array.transform as transform
 
 
 #import matplotlib.pyplot as plt
@@ -18,7 +19,9 @@ RATE = 16000
 CHANNELS = 4
 VAD_FRAMES = 20     # ms
 #DOA_FRAMES = 200    # ms
-DOA_FRAMES =350   # ms
+DOA_FRAMES =250   # ms
+FILE_NAME = '../files/data/output.txt'
+FILE_NAME_CSV = '../files/data/output.csv'
 
 def main():
 	vad = webrtcvad.Vad(3)
@@ -30,7 +33,7 @@ def main():
 	user.append([])
 	user.append([])
 	doa_chunks = int(DOA_FRAMES / VAD_FRAMES)    
-	file = open('output.txt','w')
+	file = open(FILE_NAME,'w')
 	frames = []
 	try:	
 			
@@ -80,18 +83,19 @@ def main():
 					speech_count = 0
 					chunks = []			
 			time.sleep(1)
-			file.close()
 			mic.stop()
 	except KeyboardInterrupt:
 		pass
-		#plt.ylim(0,5)		
+		#plt.ylim(0,5)	
+		file.close()
 		print 'intervenciones' 		
 		#labels = ['Usuario 1', 'Usuario 2', 'Usuario 3', 'Usuario 4']
 		#plt.yticks([1,2,3,4], labels)
 		for x in range(0,len(user)):
 			print "usuario", x+1,":", user[x] 
 			#plt.plot(user[x],[x+1]*len(user[x]),'o')
-		
+		print 'creando archivo: '+FILE_NAME
+		transform.Transform(FILE_NAME, FILE_NAME_CSV)
 		#plt.show()
 		#plt.savefig("figura")
 if __name__ == '__main__':

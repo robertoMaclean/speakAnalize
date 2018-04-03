@@ -1,8 +1,10 @@
 import student as st
-import group as gr
-import gui
-import tkinter
+#import group as gr
+#import gui
+#import tkinter
+import voiceDetection
 
+voiceDetection.main()
 # studentList = []
 # studentAnalyze = st.StudentAnalyze
 # student = studentAnalyze("pedro")
@@ -27,7 +29,7 @@ import tkinter
 # print("energia promedio total: ", student.energyInterventionTotalAVG)
 #groupAnalyze = gr.GroupAnalyze(studentList, "grupo1")
 # print("variables grupales")
-# print("Duración del evento", groupAnalyze.EventTime())
+# print("Duracion del evento", groupAnalyze.EventTime())
 # print("Cantidad de intervenciones del evento", groupAnalyze.InterventionCount())
 # print("Alumnos del grupo")
 # groupAnalyze.listarEstudiantes()
