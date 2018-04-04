@@ -1,0 +1,104 @@
+25import sys
+import webrtcvad
+import numpy as np
+import time
+from mic_array import MicArray
+from voice_engine.source import Source
+from voice_engine.channel_picker import ChannelPicker
+from pixels import pixels
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+#from gpiozero import LED
+
+
+RATE = 16000
+CHANNELS = 4
+VAD_FRAMES = 10     # ms
+#DOA_FRAMES = 200    # ms
+DOA_FRAMES = 400   # ms
+
+
+def main():
+	vad = webrtcvad.Vad(3)
+##    power = LED(5)
+##    power.on()
+##    pixel_ring.set_brightness(10)
+	speech_count = 0
+	chunks = []
+	user = []
+	user.append([])
+	user.append([])
+	user.append([])
+	user.append([])
+	# users = [4]
+	# user1 = []
+	# user2 = []
+	# user3 = []
+	# user4 = []
+	doa_chunks = int(DOA_FRAMES / VAD_FRAMES)    
+	file = open('output.txt','w')
+	try:
+		start = time.time()
+		newArrival = True
+		with MicArray(RATE, CHANNELS, RATE * VAD_FRAMES / 1000)  as mic:
+			for chunk in mic.read_chunks():
+				# Use single channel audio to detect voice activity
+				if vad.is_speech(chunk[0::CHANNELS].tobytes(), RATE):
+					speech_count += 1
+					if newArrival:   
+						startTime = time.time() - start 
+						newArrival = False       
+		            #sys.stdout.write('tiempo: '+str(time.time()-start))  
+					sys.stdout.write('1')                   
+				else:
+					sys.stdout.write('0')
+					newArrival = True
+
+				sys.stdout.flush()
+				chunks.append(chunk)
+				if len(chunks) == doa_chunks:
+					if speech_count > (doa_chunks / 2):
+						finalTime = time.time() - start
+						frames = np.concatenate(chunks)
+						direction = mic.get_direction(frames)
+						print('\nTiempo: {0:.2f}' .format(startTime))
+						#print('\nTiempo Inicio: {0:.2f}' .format(startTime))
+						#print('\nTiempo Fin: {0:.2f}' .format(finalTime))
+						print('\n{}'.format(int(direction)))
+						pixels.wakeup(direction)
+						file.write('\nDeteccion en tiempo: {0:.2f}' .format(finalTime))
+						if int(direction) < 90:
+							#user1.append(float("{0:.2f}".format(startTime)))
+							user[0].append(float("{0:.2f}".format(startTime)))
+						elif int(direction) < 180:
+							user[1].append(float("{0:.2f}".format(startTime)))
+							#user2.append(float("{0:.2f}".format(startTime)))
+						elif int(direction) < 270:
+							#user3.append(float("{0:.2f}".format(startTime)))
+							user[2].append(float("{0:.2f}".format(startTime)))
+						else:
+							#user4.append(float("{0:.2f}".format(startTime)))
+							user[3].append(float("{0:.2f}".format(startTime)))	
+						#file.write('\nUsuario: '+user )
+						newArrival = True
+					speech_count = 0
+					chunks = []			
+			time.sleep(1)
+			file.close()
+	except KeyboardInterrupt:
+		pass
+		#plt.ylim(0,5)		
+		print 'intervenciones' 		
+		labels = ['Usuario 1', 'Usuario 2', 'Usuario 3', 'Usuario 4']
+		plt.yticks([1,2,3,4], labels)
+		for x in range(0,len(user)):
+			print "usuario", x+1,":", user[x] 
+			plt.plot(user[x],[x+1]*len(user[x]),'o')
+		# print "usuario 1: ", user[0]
+		# print "usuario 2: ", user[1]
+		# print "usuario 3: ", user[2]
+		# print "usuario 4: ", user[4]
+		plt.show()
+		#plt.savefig("figura")
+if __name__ == '__main__':
+	main()
