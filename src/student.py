@@ -79,6 +79,7 @@ class StudentAnalyze(object):
 		figure.set_size_inches(8*20, 6)
 		duration = nframes/float(framerate)
 		xticks = np.arange(0, duration, 2)
+		print wave_data[0][0:1000]
 		plt.subplot(211).set_xticks(xticks)
 		plt.plot(time, wave_data[0])
 		plt.xlabel("time (seconds)")

@@ -11,10 +11,6 @@ from mic_array.pixels import pixels
 import pyaudio
 import mic_array.transform as transform
 
-
-#import matplotlib.pyplot as plt
-#from gpiozero import LED
-
 RATE = 16000
 CHANNELS = 4
 VAD_FRAMES = 20     # ms
@@ -63,8 +59,6 @@ def main():
 						frames = np.concatenate(chunks)
 						direction = mic.get_direction(frames)
 						print('\nTiempo: {0:.2f}' .format(tiempo))
-						#print('\nTiempo Inicio: {0:.2f}' .format(startTime))
-						#print('\nTiempo Fin: {0:.2f}' .format(finalTime))
 						print('\nDireccion: {}'.format(int(direction)))
 						pixels.wakeup(direction)
 						if int(direction) < 90:
@@ -86,17 +80,12 @@ def main():
 			mic.stop()
 	except KeyboardInterrupt:
 		pass
-		#plt.ylim(0,5)	
 		file.close()
 		print 'intervenciones' 		
-		#labels = ['Usuario 1', 'Usuario 2', 'Usuario 3', 'Usuario 4']
-		#plt.yticks([1,2,3,4], labels)
 		for x in range(0,len(user)):
 			print "usuario", x+1,":", user[x] 
-			#plt.plot(user[x],[x+1]*len(user[x]),'o')
 		print 'creando archivo: '+FILE_NAME
 		transform.Transform(FILE_NAME, FILE_NAME_CSV)
-		#plt.show()
-		#plt.savefig("figura")
+
 if __name__ == '__main__':
 	main()
