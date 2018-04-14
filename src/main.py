@@ -1,4 +1,4 @@
-import student as st
+#import student as st
 #import group as gr
 #import gui
 #import tkinter

@@ -1,4 +1,5 @@
 
+
 import sys
 sys.path.append('../lib/')
 import webrtcvad
@@ -15,9 +16,9 @@ RATE = 16000
 CHANNELS = 4
 VAD_FRAMES = 20     # ms
 #DOA_FRAMES = 200    # ms
-DOA_FRAMES =250   # ms
-FILE_NAME = '../files/data/output.txt'
-FILE_NAME_CSV = '../files/data/output.csv'
+DOA_FRAMES =300   # ms
+FILE_NAME = '../files/data/output'
+FILE_NAME_CSV = '../files/data/output'
 
 def main():
 	vad = webrtcvad.Vad(3)
@@ -28,17 +29,18 @@ def main():
 	user.append([])
 	user.append([])
 	user.append([])
-	doa_chunks = int(DOA_FRAMES / VAD_FRAMES)    
+	doa_chunks = int(DOA_FRAMES / VAD_FRAMES)
+	current_time = time.strtime("%x")+time.strtime("%X")
+	FILE_NAME = FILE_NAME + current_time + '.txt'
+	FILE_NAME_CSV = FILE_NAME_CSV + current_time + '.csv'    
 	file = open(FILE_NAME,'w')
 	frames = []
 	try:	
 			
 		with MicArray(RATE, CHANNELS, RATE * VAD_FRAMES / 1000)  as mic:
-			start = time.time()
 			newArrival = True
 			tiempo = 0
-			currentframe = start
-
+			pixels.listen()
 			for chunk in mic.read_chunks():				
 				# Use single channel audio to detect voice activity
 				if vad.is_speech(chunk[0::CHANNELS].tobytes(), RATE):
@@ -55,11 +57,10 @@ def main():
 
 				if len(chunks) == doa_chunks:					
 					if speech_count > (doa_chunks / 2):
-						finalTime = time.time() - start
 						frames = np.concatenate(chunks)
 						direction = mic.get_direction(frames)
 						print('\nTiempo: {0:.2f}' .format(tiempo))
-						print('\nDireccion: {}'.format(int(direction)))
+						print('Direccion: {}'.format(int(direction)))
 						pixels.wakeup(direction)
 						if int(direction) < 90:
 							micPos = 0
