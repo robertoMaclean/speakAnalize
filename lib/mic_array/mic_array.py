@@ -17,11 +17,10 @@ MIC_DISTANCE_4 = 0.08127
 MAX_TDOA_4 = MIC_DISTANCE_4 / float(SOUND_SPEED)
 
 RESPEAKER_WIDTH = 2
-FILE_PATH = '../files/data/output.wav'
 
 class MicArray(object):
 
-    def __init__(self, rate=16000, channels=8, chunk_size=None):
+    def __init__(self, rate=16000, channels=8, chunk_size=None, path='output.wav'):
         self.pyaudio_instance = pyaudio.PyAudio()
         self.queue = Queue.Queue()
         self.quit_event = threading.Event()
@@ -29,6 +28,7 @@ class MicArray(object):
         self.sample_rate = rate
         self.chunk_size = chunk_size if chunk_size else rate / 100
         self.frames = []
+        self.path = path
 
         device_index = None
         for i in range(self.pyaudio_instance.get_device_count()):
@@ -78,7 +78,7 @@ class MicArray(object):
         self.stream.stop_stream()
         self.queue.put('')
         print("guardando archivo")
-        wf = wave.open(FILE_PATH, 'wb')
+        wf = wave.open(self.path, 'wb')
         wf.setnchannels(self.channels)
         wf.setsampwidth(self.pyaudio_instance.get_sample_size(self.pyaudio_instance.get_format_from_width(RESPEAKER_WIDTH)))
         wf.setframerate(self.sample_rate)
