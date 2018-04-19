@@ -10,6 +10,7 @@ from mic_array.pixels import pixels
 import pyaudio
 import mic_array.transform as transform
 from public import *
+import audioAnalize
 
 RATE = 16000
 CHANNELS = 4
@@ -33,7 +34,7 @@ def main():
 	WAV_FILE = 'speak_activity_'+current_time+'.wav'
 	global FILE_PATH
 	TXT_PATH = FILE_PATH+time.strftime("%d-%m-%Y")+REL_PATH+'.txt'
-	CSV_PATH = FILE_PATH + time.strftime("%d-%m-%Y")+REL_PATH+'.csv'    
+	CSV_PATH = FILE_PATH+time.strftime("%d-%m-%Y")+REL_PATH+'.csv'    
 	path = os.path.abspath(FILE_PATH)+'/'+time.strftime("%d-%m-%Y")+'/'
 	print "en EnsureDir"
 	EnsureDir(path)
@@ -90,7 +91,8 @@ def main():
 		for x in range(0,len(user)):
 			print "usuario", x+1,":", user[x] 
 		print 'creando archivo: '+TXT_PATH
-		transform.Transform(TXT_PATH, CSV_PATH)
+		transform.Transform(TXT_PATH, CSV_PATH, path+WAV_FILE)
+		#audioAnalize.Analize(path+WAV_FILE, CSV_PATH)
 
 if __name__ == '__main__':
 	main()
