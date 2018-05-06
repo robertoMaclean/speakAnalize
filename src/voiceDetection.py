@@ -11,6 +11,7 @@ import pyaudio
 import mic_array.transform as transform
 from public import *
 import audioAnalize
+import sys, os
 
 RATE = 16000
 CHANNELS = 4
@@ -18,6 +19,8 @@ VAD_FRAMES = 20     # ms
 #DOA_FRAMES = 200    # ms
 DOA_FRAMES =300   # ms
 FILE_PATH = '../files/data/'
+start_record = False
+stop_record = False
 
 def main():
 	vad = webrtcvad.Vad(3)
@@ -32,21 +35,25 @@ def main():
 	current_time = time.strftime("%H-%M-%S")
 	REL_PATH = '/speak_activity_'+current_time
 	WAV_FILE = 'speak_activity_'+current_time+'.wav'
-	global FILE_PATH
 	TXT_PATH = FILE_PATH+time.strftime("%d-%m-%Y")+REL_PATH+'.txt'
 	CSV_PATH = FILE_PATH+time.strftime("%d-%m-%Y")+REL_PATH+'.csv'    
 	path = os.path.abspath(FILE_PATH)+'/'+time.strftime("%d-%m-%Y")+'/'
-	print "en EnsureDir"
 	EnsureDir(path)
 	file = open(TXT_PATH,'w')
 	frames = []
-	try:	
-			
+	
+	try:			
 		with MicArray(RATE, CHANNELS, RATE * VAD_FRAMES / 1000, path+WAV_FILE)  as mic:
 			newArrival = True
 			tiempo = 0
 			pixels.listen()
-			for chunk in mic.read_chunks():				
+			firstime = True
+			for chunk in mic.read_chunks():	
+				if(firstime):	
+					global start_record			
+					start_record = True
+					firstime = False
+				
 				# Use single channel audio to detect voice activity
 				if vad.is_speech(chunk[0::CHANNELS].tobytes(), RATE):
 					speech_count += 1
@@ -86,13 +93,19 @@ def main():
 			mic.stop()
 	except KeyboardInterrupt:
 		pass
+		stop_record = True
 		file.close()
-		print 'intervenciones' 		
-		for x in range(0,len(user)):
-			print "usuario", x+1,":", user[x] 
-		print 'creando archivo: '+TXT_PATH
-		transform.Transform(TXT_PATH, CSV_PATH, path+WAV_FILE)
+		# print 'intervenciones' 		
+		# for x in range(0,len(user)):
+		# 	print "usuario", x+1,":", user[x] 
+		# print 'creando archivo: '+TXT_PATH
+		WAV_PATH = path+WAV_FILE
+		transform.Transform(TXT_PATH, CSV_PATH, WAV_PATH)
+		return [start_record, stop_record, TXT_PATH, CSV_PATH, WAV_PATH]
 		#audioAnalize.Analize(path+WAV_FILE, CSV_PATH)
-
-if __name__ == '__main__':
-	main()
+	except:
+		stop_record = False
+		return [start_record, stop_record, '', '', '']
+	
+# if __name__ == '__main__':
+# 	main()
