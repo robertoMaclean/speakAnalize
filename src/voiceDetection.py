@@ -1,32 +1,34 @@
 import sys
-sys.path.append('../lib/')
+sys.path.append('/home/pi/audioProject/lib/')
 import webrtcvad
 import numpy as np
 import time
-from mic_array.mic_array import MicArray
 from voice_engine.source import Source
 from voice_engine.channel_picker import ChannelPicker
 from mic_array.pixels import pixels
+from mic_array.mic_array import MicArray
 import pyaudio
 import mic_array.transform as transform
 from public import *
 import audioAnalize
 import sys, os
+from gpiozero import Button
 
 RATE = 16000
 CHANNELS = 4
 VAD_FRAMES = 20     # ms
 #DOA_FRAMES = 200    # ms
 DOA_FRAMES =300   # ms
-FILE_PATH = '../files/data/'
+FILE_PATH = '/home/pi/audioProject/files/data/'
 start_record = False
 stop_record = False
+btn = Button(12)
 
 def main():
 	vad = webrtcvad.Vad(3)
 	speech_count = 0
 	chunks = []
-	user = []
+	user = [[],[],[],[]]
 	user.append([])
 	user.append([])
 	user.append([])
@@ -41,7 +43,6 @@ def main():
 	EnsureDir(path)
 	file = open(TXT_PATH,'w')
 	frames = []
-	
 	try:			
 		with MicArray(RATE, CHANNELS, RATE * VAD_FRAMES / 1000, path+WAV_FILE)  as mic:
 			newArrival = True
@@ -49,6 +50,18 @@ def main():
 			pixels.listen()
 			firstime = True
 			for chunk in mic.read_chunks():	
+				if not btn.is_pressed:	
+					stop_record = True
+					file.close()
+					# print 'intervenciones' 		
+					# for x in range(0,len(user)):
+					# 	print "usuario", x+1,":", user[x] 
+					# print 'creando archivo: '+TXT_PATH
+					WAV_PATH = path+WAV_FILE
+					mic.stop()
+					transform.Transform(TXT_PATH, CSV_PATH, WAV_PATH)
+					print "Stop Recording"	
+					return [TXT_PATH, WAV_PATH]
 				if(firstime):	
 					global start_record			
 					start_record = True
@@ -74,6 +87,7 @@ def main():
 						print('\nTiempo: {0:.2f}' .format(tiempo))
 						print('Direccion: {}'.format(int(direction)))
 						pixels.wakeup(direction)
+											
 						if int(direction) < 90:
 							micPos = 0
 						elif int(direction) < 180:
@@ -88,24 +102,16 @@ def main():
 						file.write('\n')
 						
 					speech_count = 0
-					chunks = []			
-			time.sleep(1)
-			mic.stop()
-	except KeyboardInterrupt:
-		pass
-		stop_record = True
-		file.close()
-		# print 'intervenciones' 		
-		# for x in range(0,len(user)):
-		# 	print "usuario", x+1,":", user[x] 
-		# print 'creando archivo: '+TXT_PATH
-		WAV_PATH = path+WAV_FILE
-		transform.Transform(TXT_PATH, CSV_PATH, WAV_PATH)
-		return [start_record, stop_record, TXT_PATH, CSV_PATH, WAV_PATH]
-		#audioAnalize.Analize(path+WAV_FILE, CSV_PATH)
-	except:
-		stop_record = False
-		return [start_record, stop_record, '', '', '']
+					chunks = []	
+			# mic.stop()		
+	except ValueError as value:
+		print("excepcion", value)
+		return ['', '']
 	
-# if __name__ == '__main__':
+def wait_button():
+	btn.wait_for_release()
+	main()
+
+if __name__ == '__main__':
 # 	main()
+	wait_button()
