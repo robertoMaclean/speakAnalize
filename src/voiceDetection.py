@@ -18,7 +18,7 @@ RATE = 16000
 CHANNELS = 4
 VAD_FRAMES = 20     # ms
 #DOA_FRAMES = 200    # ms
-DOA_FRAMES =300   # ms
+DOA_FRAMES =400   # ms
 FILE_PATH = '/home/pi/audioProject/files/data/'
 start_record = False
 stop_record = False
@@ -58,6 +58,7 @@ def main():
 					# 	print "usuario", x+1,":", user[x] 
 					# print 'creando archivo: '+TXT_PATH
 					WAV_PATH = path+WAV_FILE
+					pixels.think()
 					mic.stop()
 					transform.Transform(TXT_PATH, CSV_PATH, WAV_PATH)
 					print "Stop Recording"	
@@ -110,6 +111,7 @@ def main():
 	
 def wait_button():
 	btn.wait_for_release()
+	time.sleep(1)
 	main()
 
 if __name__ == '__main__':
