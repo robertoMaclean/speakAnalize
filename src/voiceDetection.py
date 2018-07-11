@@ -14,7 +14,7 @@ import audioAnalize
 import sys, os
 from gpiozero import Button
 
-RATE = 16000
+RATE = 8000
 CHANNELS = 4
 VAD_FRAMES = 20     # ms
 #DOA_FRAMES = 200    # ms
@@ -53,14 +53,9 @@ def main():
 				if not btn.is_pressed:	
 					stop_record = True
 					file.close()
-					# print 'intervenciones' 		
-					# for x in range(0,len(user)):
-					# 	print "usuario", x+1,":", user[x] 
-					# print 'creando archivo: '+TXT_PATH
 					WAV_PATH = path+WAV_FILE
-					pixels.think()
 					mic.stop()
-					transform.Transform(TXT_PATH, CSV_PATH, WAV_PATH)
+					transform.Transform(TXT_PATH, CSV_PATH, WAV_PATH, RATE)		
 					print "Stop Recording"	
 					return [TXT_PATH, WAV_PATH]
 				if(firstime):	
@@ -103,8 +98,7 @@ def main():
 						file.write('\n')
 						
 					speech_count = 0
-					chunks = []	
-			# mic.stop()		
+					chunks = []					
 	except ValueError as value:
 		print("excepcion", value)
 		return ['', '']
