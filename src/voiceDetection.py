@@ -14,16 +14,19 @@ import audioAnalize
 import sys, os
 from gpiozero import Button
 
-RATE = 8000
+RATE = 16000
 CHANNELS = 4
-VAD_FRAMES = 20     # ms
+VAD_FRAMES = 30    # ms
+TIME_VAD = float(float(VAD_FRAMES)/1000)
 #DOA_FRAMES = 200    # ms
 DOA_FRAMES =400   # ms
 FILE_PATH = '/home/pi/audioProject/files/data/'
 start_record = False
 stop_record = False
 btn = Button(12)
-
+TXT_PATH = ''
+CSV_PATH = ''
+WAV_PATH = ''
 def main():
 	vad = webrtcvad.Vad(3)
 	speech_count = 0
@@ -36,6 +39,8 @@ def main():
 	doa_chunks = int(DOA_FRAMES / VAD_FRAMES)
 	current_time = time.strftime("%H-%M-%S")
 	REL_PATH = '/speak_activity_'+current_time
+	global CSV_PATH	
+	global TXT_PATH	
 	WAV_FILE = 'speak_activity_'+current_time+'.wav'
 	TXT_PATH = FILE_PATH+time.strftime("%d-%m-%Y")+REL_PATH+'.txt'
 	CSV_PATH = FILE_PATH+time.strftime("%d-%m-%Y")+REL_PATH+'.csv'    
@@ -53,11 +58,12 @@ def main():
 				if not btn.is_pressed:	
 					stop_record = True
 					file.close()
+					global WAV_PATH
 					WAV_PATH = path+WAV_FILE
+					pixels.think()
 					mic.stop()
-					transform.Transform(TXT_PATH, CSV_PATH, WAV_PATH, RATE)		
-					print "Stop Recording"	
-					return [TXT_PATH, WAV_PATH]
+					print "Stop Recording"
+					return [TXT_PATH, WAV_PATH]		
 				if(firstime):	
 					global start_record			
 					start_record = True
@@ -72,7 +78,7 @@ def main():
 					sys.stdout.write('0') 
 					file.write('0')
 
-				tiempo = 0.02 + tiempo				
+				tiempo = TIME_VAD + tiempo				
 				sys.stdout.flush()
 				chunks.append(chunk)
 
@@ -100,13 +106,16 @@ def main():
 					speech_count = 0
 					chunks = []					
 	except ValueError as value:
-		print("excepcion", value)
+		print "excepcion", value
 		return ['', '']
 	
 def wait_button():
 	btn.wait_for_release()
 	time.sleep(1)
-	main()
+	result = main()
+	if(result[0]!= ''):
+		transform.Transform(TXT_PATH, CSV_PATH, WAV_PATH, RATE, TIME_VAD)
+		pixels.off()
 
 if __name__ == '__main__':
 # 	main()

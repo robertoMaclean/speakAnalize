@@ -2,8 +2,10 @@ import csv
 import wave
 import numpy as np
 import time as tiempo
+import gc
 
-def Transform(filenamein='../../files/data/output.txt', filenameout='../../files/data/output.csv', wavfile='../../files/data/output.wav', RATE = 16000):
+def Transform(filenamein='../../files/data/output.txt', filenameout='../../files/data/output.csv', wavfile='../../files/data/output.wav', RATE = 16000, TIME_VAD=0.02):
+	gc.collect()
 	with open(filenamein,'r') as f:
 		content = f.readlines()
 	# you may also want to remove whitespace characters like `\n` at the end of each line
@@ -18,7 +20,7 @@ def Transform(filenamein='../../files/data/output.txt', filenameout='../../files
 		pos = 0
 		for x in range(0,len(content)-2,2):		 
 			for bit in content[x]:
-				seconds = seconds + 0.02
+				seconds = seconds + TIME_VAD
 				if bit == '1':
 					mic = direction(int(content[x+1]))
 					#print(len(time)/16000)
