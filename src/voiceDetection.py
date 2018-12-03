@@ -114,6 +114,16 @@ def wait_button():
 	time.sleep(1)
 	main()
 
+def test():
+	while True:
+		btn.wait_for_release()
+		if(btn.inactive_time>5):
+			print("apagado")
+
+	
+
+
 if __name__ == '__main__':
 # 	main()
-	wait_button()
+#	wait_button()
+	test()
