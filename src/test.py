@@ -71,15 +71,7 @@ class Test(unittest.TestCase):
 		self.assertEqual(is_file, True)
 		print "borrando archivo..."
 		os.remove(file_csv_output)
-
 	
-
-
-		
-		
-		
-
-		
 
 if __name__ == '__main__':
 	unittest.main()

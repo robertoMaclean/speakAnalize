@@ -6,7 +6,7 @@ from mic_array import MicArray
 from pixel_ring import pixel_ring
 
 
-RATE = 10000
+RATE = 8000
 CHANNELS = 4
 VAD_FRAMES = 10     # ms
 DOA_FRAMES = 500    # ms
