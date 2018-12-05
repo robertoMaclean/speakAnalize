@@ -16,17 +16,14 @@ from gpiozero import Button
 
 RATE = 16000
 CHANNELS = 4
-VAD_FRAMES = 30    # ms
-TIME_VAD = float(float(VAD_FRAMES)/1000)
+VAD_FRAMES = 20     # ms
 #DOA_FRAMES = 200    # ms
 DOA_FRAMES =400   # ms
 FILE_PATH = '/home/pi/audioProject/files/data/'
 start_record = False
 stop_record = False
 btn = Button(12)
-TXT_PATH = ''
-CSV_PATH = ''
-WAV_PATH = ''
+
 def main():
 	vad = webrtcvad.Vad(3)
 	speech_count = 0
@@ -39,8 +36,6 @@ def main():
 	doa_chunks = int(DOA_FRAMES / VAD_FRAMES)
 	current_time = time.strftime("%H-%M-%S")
 	REL_PATH = '/speak_activity_'+current_time
-	global CSV_PATH	
-	global TXT_PATH	
 	WAV_FILE = 'speak_activity_'+current_time+'.wav'
 	TXT_PATH = FILE_PATH+time.strftime("%d-%m-%Y")+REL_PATH+'.txt'
 	CSV_PATH = FILE_PATH+time.strftime("%d-%m-%Y")+REL_PATH+'.csv'    
@@ -58,12 +53,16 @@ def main():
 				if not btn.is_pressed:	
 					stop_record = True
 					file.close()
-					global WAV_PATH
+					# print 'intervenciones' 		
+					# for x in range(0,len(user)):
+					# 	print "usuario", x+1,":", user[x] 
+					# print 'creando archivo: '+TXT_PATH
 					WAV_PATH = path+WAV_FILE
 					pixels.think()
 					mic.stop()
-					print "Stop Recording"
-					return [TXT_PATH, WAV_PATH]		
+					transform.Transform(TXT_PATH, CSV_PATH, WAV_PATH)
+					print "Stop Recording"	
+					return [TXT_PATH, WAV_PATH]
 				if(firstime):	
 					global start_record			
 					start_record = True
@@ -78,7 +77,7 @@ def main():
 					sys.stdout.write('0') 
 					file.write('0')
 
-				tiempo = TIME_VAD + tiempo				
+				tiempo = 0.02 + tiempo				
 				sys.stdout.flush()
 				chunks.append(chunk)
 
@@ -104,29 +103,21 @@ def main():
 						file.write('\n')
 						
 					speech_count = 0
-					chunks = []					
+					chunks = []	
+			# mic.stop()		
 	except ValueError as value:
-		print "excepcion", value
+		print("excepcion", value)
 		return ['', '']
 	
 def wait_button():
 	btn.wait_for_release()
 	time.sleep(1)
-	result = main()
-	if(result[0]!= ''):
-		transform.Transform(TXT_PATH, CSV_PATH, WAV_PATH, RATE, TIME_VAD)
-		pixels.off()
+	main()
 
 def test():
 	while True:
 		btn.wait_for_release()
-		if(btn.inactive_time>5):
-			print("apagado")
-
-	
-
 
 if __name__ == '__main__':
 # 	main()
-#	wait_button()
-	test()
+	wait_button()
